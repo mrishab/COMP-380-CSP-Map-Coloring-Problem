@@ -1,9 +1,11 @@
 package ca.ufv.comp380.assignment.a1;
 
+import java.net.URL;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -13,10 +15,21 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label label = new Label("Hello, JavaFX!");
-        Scene scene = new Scene(new StackPane(label), 640, 480);
+        WebView webView = new WebView();
+        WebEngine webEngine = webView.getEngine();
+
+        URL svgUrl = getClass().getResource("/img/svg/maps/canada.svg");
+        if (svgUrl != null) {
+            webEngine.load(svgUrl.toExternalForm());
+        } else {
+            System.err.println("Could not find canada.svg at /img/svg/maps/canada.svg");
+        }
+
+        StackPane root = new StackPane(webView);
+        Scene scene = new Scene(root, 900, 700);
+
+        stage.setTitle("Canada Map");
         stage.setScene(scene);
         stage.show();
     }
-
 }
