@@ -2,7 +2,7 @@ package ca.ufv.comp380.assignment.a1.algorithm;
 
 import ca.ufv.comp380.assignment.a1.controller.AppController;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
-import ca.ufv.comp380.assignment.a1.model.Graph;
+import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import java.util.List;
 
 /**
@@ -15,10 +15,10 @@ public interface CspAlgorithm {
      * Initializes the algorithm with problem parameters before execution begins.
      *
      * @param controller the controller wrapping the map and application
-     * @param graph the graph of provinces and their adjacencies
+     * @param country the current country configuration containing its provinces and adjacencies
      * @param availableColors the list of available colors selected in the UI
      */
-    void initialize(AppController controller, Graph graph, List<ColorOption> availableColors);
+    void initialize(AppController controller, CountryConfig country, List<ColorOption> availableColors);
 
     /**
      * Executes a single step of the CSP algorithm.

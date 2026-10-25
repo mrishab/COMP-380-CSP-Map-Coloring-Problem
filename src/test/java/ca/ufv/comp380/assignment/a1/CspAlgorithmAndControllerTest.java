@@ -4,7 +4,6 @@ import ca.ufv.comp380.assignment.a1.algorithm.CspAlgorithm;
 import ca.ufv.comp380.assignment.a1.controller.AppController;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
-import ca.ufv.comp380.assignment.a1.model.Graph;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -20,15 +19,15 @@ public class CspAlgorithmAndControllerTest {
      */
     static class DummyCspAlgorithm implements CspAlgorithm {
         private AppController controller;
-        private Graph graph;
+        private CountryConfig country;
         private List<ColorOption> colors;
         private int currentProvince = 0;
         private boolean finished = false;
 
         @Override
-        public void initialize(AppController controller, Graph graph, List<ColorOption> availableColors) {
+        public void initialize(AppController controller, CountryConfig country, List<ColorOption> availableColors) {
             this.controller = controller;
-            this.graph = graph;
+            this.country = country;
             this.colors = availableColors;
             this.currentProvince = 0;
             this.finished = false;
@@ -36,7 +35,8 @@ public class CspAlgorithmAndControllerTest {
 
         @Override
         public boolean step() {
-            if (graph == null || colors == null || colors.isEmpty() || currentProvince >= graph.getNumVertices()) {
+            int total = country != null ? country.getProvinces().size() : 0;
+            if (country == null || colors == null || colors.isEmpty() || currentProvince >= total) {
                 finished = true;
                 return false;
             }
@@ -48,7 +48,7 @@ public class CspAlgorithmAndControllerTest {
             }
 
             currentProvince++;
-            if (currentProvince >= graph.getNumVertices()) {
+            if (currentProvince >= total) {
                 finished = true;
                 return false;
             }
@@ -68,14 +68,15 @@ public class CspAlgorithmAndControllerTest {
 
         @Override
         public boolean isSolved() {
-            return finished && currentProvince == (graph != null ? graph.getNumVertices() : 0);
+            int total = country != null ? country.getProvinces().size() : 0;
+            return finished && currentProvince == total;
         }
     }
 
     @Test
     public void testCspAlgorithmInterfaceAndStepping() {
         DummyCspAlgorithm algorithm = new DummyCspAlgorithm();
-        Graph canada = Graph.CANADA;
+        CountryConfig canada = CountryConfig.CANADA;
         List<ColorOption> colors = ColorOption.getCanonicalColors();
 
         algorithm.initialize(null, canada, colors);

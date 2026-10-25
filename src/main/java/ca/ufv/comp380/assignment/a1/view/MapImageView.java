@@ -123,16 +123,14 @@ public class MapImageView extends StackPane {
         if (hexColor == null || hexColor.isBlank()) {
             currentColorState.remove(index);
             applyScript(String.format(
-                "var paths = document.querySelectorAll('path');" +
-                "if (paths[%d]) { paths[%d].style.fill = ''; }",
-                index, index
+                "var p = document.querySelectorAll('path')[%d]; if (p) { p.style.fill = ''; }",
+                index
             ));
         } else {
             currentColorState.put(index, hexColor);
             applyScript(String.format(
-                "var paths = document.querySelectorAll('path');" +
-                "if (paths[%d]) { paths[%d].style.fill = '%s'; paths[%d].style.transition = 'fill 0.25s ease'; }",
-                index, hexColor, index
+                "var p = document.querySelectorAll('path')[%d]; if (p) { p.style.fill = '%s'; p.style.transition = 'fill 0.25s ease'; }",
+                index, hexColor
             ));
         }
     }
@@ -144,14 +142,12 @@ public class MapImageView extends StackPane {
         if (id == null) return;
         if (hexColor == null || hexColor.isBlank()) {
             applyScript(String.format(
-                "var el = document.getElementById('%s');" +
-                "if (el) { el.style.fill = ''; }",
+                "var el = document.getElementById('%s'); if (el) { el.style.fill = ''; }",
                 id
             ));
         } else {
             applyScript(String.format(
-                "var el = document.getElementById('%s');" +
-                "if (el) { el.style.fill = '%s'; el.style.transition = 'fill 0.25s ease'; }",
+                "var el = document.getElementById('%s'); if (el) { el.style.fill = '%s'; el.style.transition = 'fill 0.25s ease'; }",
                 id, hexColor
             ));
         }

@@ -1,10 +1,11 @@
 package ca.ufv.comp380.assignment.a1.controller;
 
 import ca.ufv.comp380.assignment.a1.algorithm.CspAlgorithm;
+import ca.ufv.comp380.assignment.a1.algorithm.CspMapColoringAlgorithm;
 import ca.ufv.comp380.assignment.a1.model.AppState;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
-import ca.ufv.comp380.assignment.a1.model.Graph;
+import ca.ufv.comp380.assignment.a1.model.Province;
 import ca.ufv.comp380.assignment.a1.view.BottomControlsView;
 import ca.ufv.comp380.assignment.a1.view.ColorSelectionView;
 import ca.ufv.comp380.assignment.a1.view.ExecutionControlsView;
@@ -57,6 +58,7 @@ public class AppController {
         this.runner.setStepDelaySeconds(mapSettingsView.getStepDelay());
 
         initListeners();
+        this.algorithm = new CspMapColoringAlgorithm();
     }
 
     private void initListeners() {
@@ -81,7 +83,8 @@ public class AppController {
      * Handles country changes from the dropdown.
      */
     public void onCountryChanged(CountryConfig newCountry) {
-        if (newCountry == null) return;
+        if (newCountry == null)
+            return;
         this.currentCountry = newCountry;
         runner.reset();
         resetColorState();
@@ -93,7 +96,7 @@ public class AppController {
      */
     public void ensureAlgorithmInitialized() {
         if (algorithm != null) {
-            algorithm.initialize(this, getCurrentGraph(), getAvailableColors());
+            algorithm.initialize(this, currentCountry, getAvailableColors());
         }
     }
 
@@ -104,33 +107,60 @@ public class AppController {
     /**
      * Updates the color state of a given province using a ColorOption.
      *
-     * @param provinceIndex the 0-indexed province corresponding to the graph row / SVG path
-     * @param colorOption the chosen ColorOption (or null to uncolor)
+     * @param provinceIndex the 0-indexed province corresponding to the graph row /
+     *                      SVG path
+     * @param colorOption   the chosen ColorOption (or null to uncolor)
      */
     public void updateColorState(int provinceIndex, ColorOption colorOption) {
         if (colorOption != null) {
             colorState.put(provinceIndex, colorOption);
             mapImageView.setProvinceColor(provinceIndex, colorOption.getHexCode());
+            if (currentCountry != null && provinceIndex >= 0 && provinceIndex < currentCountry.getProvinces().size()) {
+                Province p = currentCountry.getProvinces().get(provinceIndex);
+                if (p != null && p.getProvinceSvgMapId() != null) {
+                    mapImageView.setProvinceColorById(p.getProvinceSvgMapId(), colorOption.getHexCode());
+                }
+            }
         } else {
             colorState.remove(provinceIndex);
             mapImageView.setProvinceColor(provinceIndex, null);
+            if (currentCountry != null && provinceIndex >= 0 && provinceIndex < currentCountry.getProvinces().size()) {
+                Province p = currentCountry.getProvinces().get(provinceIndex);
+                if (p != null && p.getProvinceSvgMapId() != null) {
+                    mapImageView.setProvinceColorById(p.getProvinceSvgMapId(), null);
+                }
+            }
         }
     }
 
     /**
-     * Updates the color state of a given province using a hex color code (e.g. "#E53935").
+     * Updates the color state of a given province using a hex color code (e.g.
+     * "#E53935").
      *
-     * @param provinceIndex the 0-indexed province corresponding to the graph row / SVG path
-     * @param hexColor the hex color string (or null/empty to uncolor)
+     * @param provinceIndex the 0-indexed province corresponding to the graph row /
+     *                      SVG path
+     * @param hexColor      the hex color string (or null/empty to uncolor)
      */
     public void updateColorState(int provinceIndex, String hexColor) {
         if (hexColor != null && !hexColor.isBlank()) {
             ColorOption opt = findColorOptionByHex(hexColor);
             colorState.put(provinceIndex, opt);
             mapImageView.setProvinceColor(provinceIndex, hexColor);
+            if (currentCountry != null && provinceIndex >= 0 && provinceIndex < currentCountry.getProvinces().size()) {
+                Province p = currentCountry.getProvinces().get(provinceIndex);
+                if (p != null && p.getProvinceSvgMapId() != null) {
+                    mapImageView.setProvinceColorById(p.getProvinceSvgMapId(), hexColor);
+                }
+            }
         } else {
             colorState.remove(provinceIndex);
             mapImageView.setProvinceColor(provinceIndex, null);
+            if (currentCountry != null && provinceIndex >= 0 && provinceIndex < currentCountry.getProvinces().size()) {
+                Province p = currentCountry.getProvinces().get(provinceIndex);
+                if (p != null && p.getProvinceSvgMapId() != null) {
+                    mapImageView.setProvinceColorById(p.getProvinceSvgMapId(), null);
+                }
+            }
         }
     }
 
@@ -138,7 +168,7 @@ public class AppController {
      * Updates the color state of a given province using a JavaFX Color object.
      *
      * @param provinceIndex the 0-indexed province
-     * @param color the JavaFX color (or null to uncolor)
+     * @param color         the JavaFX color (or null to uncolor)
      */
     public void updateColorState(int provinceIndex, Color color) {
         if (color != null) {
@@ -150,18 +180,42 @@ public class AppController {
     }
 
     /**
-     * Updates the color state of a given province using its SVG element ID (e.g., "CA-AB").
+     * Updates the color state of a given province using its SVG element ID (e.g.,
+     * "CA-AB").
      */
     public void updateColorState(String provinceId, String hexColor) {
-        Graph graph = getCurrentGraph();
-        if (graph != null) {
-            int idx = graph.getProvinceIndexById(provinceId);
-            if (idx >= 0) {
-                updateColorState(idx, hexColor);
-                return;
-            }
+        Province p = Province.fromSvgMapId(provinceId);
+        if (p != null) {
+            updateColorState(p.getIndex(), hexColor);
         }
         mapImageView.setProvinceColorById(provinceId, hexColor);
+    }
+
+    /**
+     * Updates the color state of a given province using its Province enum and a
+     * ColorOption.
+     */
+    public void updateColorState(Province province, ColorOption colorOption) {
+        if (province != null) {
+            updateColorState(province.getIndex(), colorOption);
+            if (province.getProvinceSvgMapId() != null) {
+                mapImageView.setProvinceColorById(province.getProvinceSvgMapId(),
+                    colorOption != null ? colorOption.getHexCode() : null);
+            }
+        }
+    }
+
+    /**
+     * Updates the color state of a given province using its Province enum and a hex
+     * color.
+     */
+    public void updateColorState(Province province, String hexColor) {
+        if (province != null) {
+            updateColorState(province.getIndex(), hexColor);
+            if (province.getProvinceSvgMapId() != null) {
+                mapImageView.setProvinceColorById(province.getProvinceSvgMapId(), hexColor);
+            }
+        }
     }
 
     /**
@@ -170,7 +224,8 @@ public class AppController {
      * @param newColorState map of provinceIndex -> ColorOption
      */
     public void updateColorState(Map<Integer, ColorOption> newColorState) {
-        if (newColorState == null) return;
+        if (newColorState == null)
+            return;
         for (Map.Entry<Integer, ColorOption> entry : newColorState.entrySet()) {
             updateColorState(entry.getKey(), entry.getValue());
         }
@@ -209,10 +264,9 @@ public class AppController {
 
     private String toHexString(Color color) {
         return String.format("#%02X%02X%02X",
-            (int) Math.round(color.getRed() * 255),
-            (int) Math.round(color.getGreen() * 255),
-            (int) Math.round(color.getBlue() * 255)
-        );
+                (int) Math.round(color.getRed() * 255),
+                (int) Math.round(color.getGreen() * 255),
+                (int) Math.round(color.getBlue() * 255));
     }
 
     // ----------------------------------------------------
@@ -285,10 +339,6 @@ public class AppController {
 
     public void setCurrentCountry(CountryConfig country) {
         onCountryChanged(country);
-    }
-
-    public Graph getCurrentGraph() {
-        return currentCountry != null ? currentCountry.getGraph() : null;
     }
 
     public List<ColorOption> getAvailableColors() {
