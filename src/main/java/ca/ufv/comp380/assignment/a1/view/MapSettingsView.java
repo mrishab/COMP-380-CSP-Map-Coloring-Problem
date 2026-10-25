@@ -1,6 +1,6 @@
 package ca.ufv.comp380.assignment.a1.view;
 
-import ca.ufv.comp380.assignment.a1.model.MapOption;
+import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import java.util.function.Consumer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,7 +18,7 @@ import javafx.util.StringConverter;
  * 2. Slider bar for 'Step Delay' ranging from 0s to 5s.
  */
 public class MapSettingsView extends VBox {
-    private final ComboBox<MapOption> mapComboBox;
+    private final ComboBox<CountryConfig> mapComboBox;
     private final Slider stepDelaySlider;
     private final Label delayValueLabel;
 
@@ -46,7 +46,7 @@ public class MapSettingsView extends VBox {
         mapLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #24292e;");
 
         mapComboBox = new ComboBox<>();
-        mapComboBox.getItems().addAll(MapOption.getCanonicalMaps());
+        mapComboBox.getItems().addAll(CountryConfig.getCanonicalCountries());
         mapComboBox.setMaxWidth(Double.MAX_VALUE);
         mapComboBox.setStyle(
             "-fx-font-size: 14px; " +
@@ -109,19 +109,28 @@ public class MapSettingsView extends VBox {
     }
 
     /**
-     * Registers a listener to be called when the selected map changes.
+     * Registers a listener to be called when the selected country/map changes.
      *
-     * @param onMapSelected consumer taking the newly selected MapOption
+     * @param onCountrySelected consumer taking the newly selected CountryConfig
      */
-    public void setOnMapSelected(Consumer<MapOption> onMapSelected) {
+    public void setOnCountrySelected(Consumer<CountryConfig> onCountrySelected) {
         mapComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null && onMapSelected != null) {
-                onMapSelected.accept(newVal);
+            if (newVal != null && onCountrySelected != null) {
+                onCountrySelected.accept(newVal);
             }
         });
     }
 
-    public ComboBox<MapOption> getMapComboBox() {
+    /**
+     * Backward-compatible listener alias for setOnCountrySelected.
+     *
+     * @param onMapSelected consumer taking the newly selected CountryConfig
+     */
+    public void setOnMapSelected(Consumer<CountryConfig> onMapSelected) {
+        setOnCountrySelected(onMapSelected);
+    }
+
+    public ComboBox<CountryConfig> getMapComboBox() {
         return mapComboBox;
     }
 

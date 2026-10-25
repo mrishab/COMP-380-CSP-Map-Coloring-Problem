@@ -1,6 +1,6 @@
 package ca.ufv.comp380.assignment.a1.view;
 
-import ca.ufv.comp380.assignment.a1.model.MapOption;
+import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -36,18 +36,18 @@ public class MainView extends VBox {
         VBox.setVgrow(bottomControlsView, Priority.ALWAYS);
 
         // Connect dropdown map selection to top image view
-        bottomControlsView.getMapSettingsView().setOnMapSelected(selectedMap -> {
-            if (selectedMap != null) {
-                mapImageView.loadMap(selectedMap.getResourcePath());
+        bottomControlsView.getMapSettingsView().setOnCountrySelected(selectedCountry -> {
+            if (selectedCountry != null) {
+                mapImageView.loadMap(selectedCountry.getMapSvg());
             }
         });
 
         // Load the initial map (Canada)
-        MapOption defaultMap = bottomControlsView.getMapSettingsView().getMapComboBox().getValue();
+        CountryConfig defaultMap = bottomControlsView.getMapSettingsView().getMapComboBox().getValue();
         if (defaultMap != null) {
-            mapImageView.loadMap(defaultMap.getResourcePath());
+            mapImageView.loadMap(defaultMap.getMapSvg());
         } else {
-            mapImageView.loadMap("/img/svg/maps/canada.svg");
+            mapImageView.loadMap(CountryConfig.CANADA.getMapSvg());
         }
 
         getChildren().addAll(mapImageView, bottomControlsView);
