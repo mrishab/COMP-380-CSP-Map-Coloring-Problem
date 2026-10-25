@@ -1,5 +1,6 @@
 package ca.ufv.comp380.assignment.a1.view;
 
+import ca.ufv.comp380.assignment.a1.controller.AppController;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -17,6 +18,7 @@ public class MainView extends VBox {
     private final MapImageView mapImageView;
     private final BottomControlsView bottomControlsView;
     private final ExecutionControlsView executionControlsView;
+    private final AppController controller;
 
     public MainView() {
         setFillWidth(true);
@@ -46,12 +48,10 @@ public class MainView extends VBox {
         bottomControlsView.maxHeightProperty().bind(heightProperty().subtract(68).multiply(0.40));
         VBox.setVgrow(bottomControlsView, Priority.ALWAYS);
 
-        // Connect dropdown map selection to top image view
-        bottomControlsView.getMapSettingsView().setOnCountrySelected(selectedCountry -> {
-            if (selectedCountry != null) {
-                mapImageView.loadMap(selectedCountry.getMapSvg());
-            }
-        });
+        getChildren().addAll(mapImageView, bottomControlsView, executionControlsView);
+
+        // Controller wrapping the map and application controls
+        controller = new AppController(this);
 
         // Load the initial map (Canada)
         CountryConfig defaultMap = bottomControlsView.getMapSettingsView().getMapComboBox().getValue();
@@ -60,8 +60,6 @@ public class MainView extends VBox {
         } else {
             mapImageView.loadMap(CountryConfig.CANADA.getMapSvg());
         }
-
-        getChildren().addAll(mapImageView, bottomControlsView, executionControlsView);
     }
 
     public MapImageView getMapImageView() {
@@ -74,5 +72,9 @@ public class MainView extends VBox {
 
     public ExecutionControlsView getExecutionControlsView() {
         return executionControlsView;
+    }
+
+    public AppController getController() {
+        return controller;
     }
 }

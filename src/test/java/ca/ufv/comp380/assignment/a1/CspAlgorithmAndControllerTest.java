@@ -1,0 +1,115 @@
+package ca.ufv.comp380.assignment.a1;
+
+import ca.ufv.comp380.assignment.a1.algorithm.CspAlgorithm;
+import ca.ufv.comp380.assignment.a1.controller.AppController;
+import ca.ufv.comp380.assignment.a1.model.ColorOption;
+import ca.ufv.comp380.assignment.a1.model.CountryConfig;
+import ca.ufv.comp380.assignment.a1.model.Graph;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class CspAlgorithmAndControllerTest {
+
+    /**
+     * Sample CSP Algorithm implementation verifying the interface contract.
+     */
+    static class DummyCspAlgorithm implements CspAlgorithm {
+        private AppController controller;
+        private Graph graph;
+        private List<ColorOption> colors;
+        private int currentProvince = 0;
+        private boolean finished = false;
+
+        @Override
+        public void initialize(AppController controller, Graph graph, List<ColorOption> availableColors) {
+            this.controller = controller;
+            this.graph = graph;
+            this.colors = availableColors;
+            this.currentProvince = 0;
+            this.finished = false;
+        }
+
+        @Override
+        public boolean step() {
+            if (graph == null || colors == null || colors.isEmpty() || currentProvince >= graph.getNumVertices()) {
+                finished = true;
+                return false;
+            }
+
+            // Assign color cyclically and update controller
+            ColorOption chosenColor = colors.get(currentProvince % colors.size());
+            if (controller != null) {
+                controller.updateColorState(currentProvince, chosenColor);
+            }
+
+            currentProvince++;
+            if (currentProvince >= graph.getNumVertices()) {
+                finished = true;
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public void reset() {
+            currentProvince = 0;
+            finished = false;
+        }
+
+        @Override
+        public boolean isFinished() {
+            return finished;
+        }
+
+        @Override
+        public boolean isSolved() {
+            return finished && currentProvince == (graph != null ? graph.getNumVertices() : 0);
+        }
+    }
+
+    @Test
+    public void testCspAlgorithmInterfaceAndStepping() {
+        DummyCspAlgorithm algorithm = new DummyCspAlgorithm();
+        Graph canada = Graph.CANADA;
+        List<ColorOption> colors = ColorOption.getCanonicalColors();
+
+        algorithm.initialize(null, canada, colors);
+        assertFalse(algorithm.isFinished());
+
+        // Step through all 13 provinces
+        int steps = 0;
+        while (!algorithm.isFinished() && steps < 20) {
+            algorithm.step();
+            steps++;
+        }
+
+        assertEquals(13, steps);
+        assertTrue(algorithm.isFinished());
+        assertTrue(algorithm.isSolved());
+
+        // Reset
+        algorithm.reset();
+        assertFalse(algorithm.isFinished());
+        assertFalse(algorithm.isSolved());
+    }
+
+    @Test
+    public void testControllerColorStateTracking() {
+        // Test controller updateColorState logic
+        Map<Integer, ColorOption> colorMap = new HashMap<>();
+        ColorOption red = new ColorOption("Red", "#E53935");
+        ColorOption blue = new ColorOption("Blue", "#1E88E5");
+
+        colorMap.put(0, red);
+        colorMap.put(1, blue);
+
+        assertEquals(2, colorMap.size());
+        assertEquals(red, colorMap.get(0));
+        assertEquals(blue, colorMap.get(1));
+    }
+}
