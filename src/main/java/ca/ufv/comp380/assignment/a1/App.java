@@ -1,11 +1,10 @@
 package ca.ufv.comp380.assignment.a1;
 
-import java.net.URL;
+import ca.ufv.comp380.assignment.a1.view.MainView;
 import javafx.application.Application;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -15,20 +14,28 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        WebView webView = new WebView();
-        WebEngine webEngine = webView.getEngine();
+        MainView mainView = new MainView();
 
-        URL svgUrl = getClass().getResource("/img/svg/maps/canada.svg");
-        if (svgUrl != null) {
-            webEngine.load(svgUrl.toExternalForm());
-        } else {
-            System.err.println("Could not find canada.svg at /img/svg/maps/canada.svg");
-        }
+        // Calculate 70% of the screen's usable visual view area
+        Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+        double initialWidth = Math.round(visualBounds.getWidth() * 0.70);
+        double initialHeight = Math.round(visualBounds.getHeight() * 0.70);
 
-        StackPane root = new StackPane(webView);
-        Scene scene = new Scene(root, 900, 700);
+        Scene scene = new Scene(mainView, initialWidth, initialHeight);
 
-        stage.setTitle("Canada Map");
+        stage.setTitle("Map Coloring CSP - Canonical Maps");
+        stage.setWidth(initialWidth);
+        stage.setHeight(initialHeight);
+
+        // Standard minimum bounds and resizable enabling full maximize support
+        stage.setMinWidth(640);
+        stage.setMinHeight(480);
+        stage.setResizable(true);
+
+        // Center within the screen viewport
+        stage.setX(visualBounds.getMinX() + (visualBounds.getWidth() - initialWidth) / 2.0);
+        stage.setY(visualBounds.getMinY() + (visualBounds.getHeight() - initialHeight) / 2.0);
+
         stage.setScene(scene);
         stage.show();
     }
