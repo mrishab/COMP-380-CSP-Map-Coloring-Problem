@@ -112,7 +112,8 @@ public class AppController {
     // ----------------------------------------------------
 
     /**
-     * Updates the color state of a given province using its Province enum and a ColorOption.
+     * Updates the color state of a given province using its Province enum and a
+     * ColorOption.
      * Extracts the SVG map ID to update the visual map.
      *
      * @param province    the Province enum
@@ -189,6 +190,22 @@ public class AppController {
             int total = currentCountry != null ? currentCountry.getProvinces().size() : count;
             executionControlsView.showSolutionFound("Solution found! (" + count + "/" + total + " provinces colored)");
         }
+        printSolution();
+    }
+
+    private void printSolution() {
+        System.out.println("==================================================");
+        System.out.println(
+                "CSP Map Coloring Solution: " + (currentCountry != null ? currentCountry.getCanonicalName() : "Map"));
+        System.out.println("==================================================");
+        for (Map.Entry<Province, ColorOption> entry : colorState.entrySet()) {
+            System.out.printf("%-25s (%s) -> %s (%s)%n",
+                    entry.getKey().getProvinceName(),
+                    entry.getKey().getProvinceSvgMapId(),
+                    entry.getValue().getName(),
+                    entry.getValue().getHexCode());
+        }
+        System.out.println("==================================================");
     }
 
     public void notifyFailed() {
