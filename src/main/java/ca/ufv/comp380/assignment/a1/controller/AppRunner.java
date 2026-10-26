@@ -77,7 +77,9 @@ public class AppRunner {
      * Starts or resumes running the algorithm step-by-step.
      */
     public void start() {
-        controller.ensureAlgorithmInitialized();
+        if (controller.getAppState() == AppState.UNSTARTED || stepCount == 0) {
+            controller.ensureAlgorithmInitialized();
+        }
 
         if (controller.getAppState() != AppState.RUNNING) {
             controller.setAppState(AppState.RUNNING);

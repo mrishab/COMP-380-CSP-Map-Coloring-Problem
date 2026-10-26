@@ -42,8 +42,9 @@ public class AppController {
         this.colorSelectionView = null;
         this.executionControlsView = null;
         this.currentCountry = CountryConfig.CANADA;
-        this.runner = null;
         this.algorithm = new DfsBacktrackingAlgorithm();
+        this.runner = null;
+        ensureAlgorithmInitialized();
     }
 
     public AppController(MainView mainView) {
@@ -57,11 +58,12 @@ public class AppController {
             this.currentCountry = CountryConfig.CANADA;
         }
 
+        this.algorithm = new DfsBacktrackingAlgorithm();
         this.runner = new AppRunner(this);
         this.runner.setStepDelaySeconds(mapSettingsView.getStepDelay());
 
         initListeners();
-        this.algorithm = new DfsBacktrackingAlgorithm();
+        ensureAlgorithmInitialized();
     }
 
     private void initListeners() {
@@ -88,6 +90,7 @@ public class AppController {
         if (newCountry == null)
             return;
         this.currentCountry = newCountry;
+        ensureAlgorithmInitialized();
         if (runner != null) {
             runner.reset();
         }

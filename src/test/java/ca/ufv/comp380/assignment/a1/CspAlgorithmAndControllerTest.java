@@ -1,6 +1,7 @@
 package ca.ufv.comp380.assignment.a1;
 
 import ca.ufv.comp380.assignment.a1.algorithm.CspAlgorithm;
+import ca.ufv.comp380.assignment.a1.algorithm.DfsBacktrackingAlgorithm;
 import ca.ufv.comp380.assignment.a1.controller.AppController;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
@@ -113,5 +114,23 @@ public class CspAlgorithmAndControllerTest {
         assertEquals(2, colorMap.size());
         assertEquals(red, colorMap.get(ca.ufv.comp380.assignment.a1.model.Province.CA_AB));
         assertEquals(blue, colorMap.get(ca.ufv.comp380.assignment.a1.model.Province.CA_BC));
+    }
+
+    @Test
+    public void testDfsBacktrackingAlgorithmResetBeforeInitialize() {
+        DfsBacktrackingAlgorithm algorithm = new DfsBacktrackingAlgorithm();
+        // Calling reset() before initialize() must not throw NullPointerException
+        assertDoesNotThrow(() -> algorithm.reset());
+        assertFalse(algorithm.isSolved());
+    }
+
+    @Test
+    public void testAppControllerCountryChanged() {
+        AppController controller = new AppController();
+        assertEquals(CountryConfig.CANADA, controller.getCurrentCountry());
+
+        assertDoesNotThrow(() -> controller.onCountryChanged(CountryConfig.USA));
+        assertEquals(CountryConfig.USA, controller.getCurrentCountry());
+        assertNotNull(controller.getAlgorithm());
     }
 }

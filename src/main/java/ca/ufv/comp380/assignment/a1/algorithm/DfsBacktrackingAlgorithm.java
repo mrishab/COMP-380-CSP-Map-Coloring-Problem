@@ -18,16 +18,16 @@ public class DfsBacktrackingAlgorithm implements CspAlgorithm {
     private AppController controller;
     private CountryConfig country;
     private List<ColorOption> availableColors;
-    private Stack<Province> provinceStack;
-    private boolean isBacktracking;
-    private Map<Province, Integer> provinceColorAttempt;
+    private Stack<Province> provinceStack = new Stack<>();
+    private boolean isBacktracking = false;
+    private Map<Province, Integer> provinceColorAttempt = new HashMap<>();
 
     @Override
     public void initialize(AppController controller, CountryConfig country, List<ColorOption> availableColors) {
         this.provinceStack = new Stack<>();
         this.controller = controller;
         this.country = country;
-        this.availableColors = availableColors;
+        this.availableColors = availableColors != null ? availableColors : ColorOption.getCanonicalColors();
         this.provinceColorAttempt = new HashMap<>();
         reset();
     }
@@ -47,8 +47,16 @@ public class DfsBacktrackingAlgorithm implements CspAlgorithm {
     @Override
     public void reset() {
         this.isBacktracking = false;
-        this.provinceColorAttempt.clear();
-        this.provinceStack.clear();
+        if (this.provinceColorAttempt != null) {
+            this.provinceColorAttempt.clear();
+        } else {
+            this.provinceColorAttempt = new HashMap<>();
+        }
+        if (this.provinceStack != null) {
+            this.provinceStack.clear();
+        } else {
+            this.provinceStack = new Stack<>();
+        }
         if (this.country != null && !this.country.getProvinces().isEmpty()) {
             this.provinceStack.push(this.country.getProvinces().get(0));
         }
