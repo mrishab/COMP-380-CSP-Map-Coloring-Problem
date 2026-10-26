@@ -4,8 +4,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,7 +20,6 @@ import javafx.scene.web.WebView;
 public class MapImageView extends StackPane {
     private final WebView webView;
     private final WebEngine webEngine;
-    private final Map<Integer, String> currentColorState = new LinkedHashMap<>();
 
     public MapImageView() {
         // Container has padding around the image
@@ -61,7 +58,6 @@ public class MapImageView extends StackPane {
      * @param resourcePath classpath path to the SVG map (e.g., "/img/svg/maps/canada.svg")
      */
     public void loadMap(String resourcePath) {
-        currentColorState.clear();
         try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
             if (is == null) {
                 System.err.println("Could not find map resource at: " + resourcePath);
@@ -105,36 +101,6 @@ public class MapImageView extends StackPane {
         }
     }
 
-    public WebView getWebView() {
-        return webView;
-    }
-
-    public WebEngine getWebEngine() {
-        return webEngine;
-    }
-
-    /**
-     * Sets the fill color of a province by its zero-based index in the SVG.
-     *
-     * @param index zero-based index of the province in the SVG
-     * @param hexColor hex color string (e.g., "#E53935") or null/empty to clear
-     */
-    public void setProvinceColor(int index, String hexColor) {
-        if (hexColor == null || hexColor.isBlank()) {
-            currentColorState.remove(index);
-            applyScript(String.format(
-                "var p = document.querySelectorAll('path')[%d]; if (p) { p.style.fill = ''; }",
-                index
-            ));
-        } else {
-            currentColorState.put(index, hexColor);
-            applyScript(String.format(
-                "var p = document.querySelectorAll('path')[%d]; if (p) { p.style.fill = '%s'; p.style.transition = 'fill 0.25s ease'; }",
-                index, hexColor
-            ));
-        }
-    }
-
     /**
      * Sets the fill color of a province by its SVG element ID (e.g., "CA-AB").
      */
@@ -157,7 +123,6 @@ public class MapImageView extends StackPane {
      * Clears all province fill colors back to default.
      */
     public void clearAllColors() {
-        currentColorState.clear();
         applyScript(
             "var paths = document.querySelectorAll('path');" +
             "for (var i = 0; i < paths.length; i++) { paths[i].style.fill = ''; }"
@@ -172,12 +137,5 @@ public class MapImageView extends StackPane {
                 // Ignore if document not fully ready yet
             }
         });
-    }
-
-    /**
-     * Returns a snapshot map of the currently applied province colors (index -> hexColor).
-     */
-    public Map<Integer, String> getCurrentColorState() {
-        return new LinkedHashMap<>(currentColorState);
     }
 }

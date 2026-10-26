@@ -121,15 +121,6 @@ public class MapSettingsView extends VBox {
         });
     }
 
-    /**
-     * Backward-compatible listener alias for setOnCountrySelected.
-     *
-     * @param onMapSelected consumer taking the newly selected CountryConfig
-     */
-    public void setOnMapSelected(Consumer<CountryConfig> onMapSelected) {
-        setOnCountrySelected(onMapSelected);
-    }
-
     public ComboBox<CountryConfig> getMapComboBox() {
         return mapComboBox;
     }

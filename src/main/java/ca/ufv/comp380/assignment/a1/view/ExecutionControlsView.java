@@ -39,19 +39,15 @@ public class ExecutionControlsView extends HBox {
     private final Button startButton;
     private final Button pauseButton;
     private final Button resetButton;
-    private final Button stopButton; // Kept for backward compatibility
 
     private final HBox statusBar;
     private final Label statusIconLabel;
     private final Label statusTextLabel;
-
-    private StatusType currentStatusType = StatusType.READY;
     private final ObjectProperty<AppState> stateProperty = new SimpleObjectProperty<>(AppState.UNSTARTED);
 
     private Runnable onStart;
     private Runnable onPause;
     private Runnable onReset;
-    private Runnable onStop;
 
     public ExecutionControlsView() {
         setSpacing(16);
@@ -87,15 +83,6 @@ public class ExecutionControlsView extends HBox {
                 setState(AppState.UNSTARTED);
                 showReady();
                 if (onReset != null) onReset.run();
-            }
-        });
-
-        // Dummy stop button retained for backwards compatibility
-        stopButton = createStyledButton("🛑  Stop", "#cf222e", "#a40e26");
-        stopButton.setOnAction(e -> {
-            if (getState().isStopEnabled()) {
-                setState(AppState.STOPPED);
-                if (onStop != null) onStop.run();
             }
         });
 
@@ -196,7 +183,6 @@ public class ExecutionControlsView extends HBox {
         }
         startButton.setDisable(!state.isRunEnabled());
         pauseButton.setDisable(!state.isPauseEnabled());
-        stopButton.setDisable(!state.isStopEnabled());
         resetButton.setDisable(!state.isResetEnabled());
     }
 
@@ -211,7 +197,6 @@ public class ExecutionControlsView extends HBox {
      * @param message the user-facing text message
      */
     public void setStatus(StatusType type, String message) {
-        this.currentStatusType = type;
         statusTextLabel.setText(message);
 
         switch (type) {
@@ -252,64 +237,24 @@ public class ExecutionControlsView extends HBox {
         setStatus(StatusType.READY, "Ready to start");
     }
 
-    public void showReady(String message) {
-        setStatus(StatusType.READY, message);
-    }
-
     public void showRunning() {
         setStatus(StatusType.RUNNING, "Running... searching for solution");
-    }
-
-    public void showRunning(String message) {
-        setStatus(StatusType.RUNNING, message);
     }
 
     public void showPaused() {
         setStatus(StatusType.PAUSED, "Paused");
     }
 
-    public void showPaused(String message) {
-        setStatus(StatusType.PAUSED, message);
-    }
-
-    public void showSolutionFound() {
-        setStatus(StatusType.SOLUTION_FOUND, "Solution found! All provinces colored");
-    }
-
     public void showSolutionFound(String message) {
         setStatus(StatusType.SOLUTION_FOUND, message);
-    }
-
-    public void showFailed() {
-        setStatus(StatusType.FAILED, "Failed: No valid solution found");
     }
 
     public void showFailed(String message) {
         setStatus(StatusType.FAILED, message);
     }
 
-    public StatusType getStatusType() {
-        return currentStatusType;
-    }
-
-    public String getStatusText() {
-        return statusTextLabel.getText();
-    }
-
-    public HBox getStatusBar() {
-        return statusBar;
-    }
-
-    public Label getStatusIconLabel() {
-        return statusIconLabel;
-    }
-
-    public Label getStatusTextLabel() {
-        return statusTextLabel;
-    }
-
     // ----------------------------------------------------
-    // State and Button Getters & Listeners
+    // State and Listener Accessors
     // ----------------------------------------------------
 
     public AppState getState() {
@@ -320,44 +265,12 @@ public class ExecutionControlsView extends HBox {
         stateProperty.set(state);
     }
 
-    public ObjectProperty<AppState> stateProperty() {
-        return stateProperty;
-    }
-
-    public Button getStartButton() {
-        return startButton;
-    }
-
-    public Button getRunButton() {
-        return startButton;
-    }
-
-    public Button getPauseButton() {
-        return pauseButton;
-    }
-
-    public Button getStopButton() {
-        return stopButton;
-    }
-
-    public Button getResetButton() {
-        return resetButton;
-    }
-
     public void setOnStart(Runnable onStart) {
         this.onStart = onStart;
     }
 
-    public void setOnRun(Runnable onRun) {
-        this.onStart = onRun;
-    }
-
     public void setOnPause(Runnable onPause) {
         this.onPause = onPause;
-    }
-
-    public void setOnStop(Runnable onStop) {
-        this.onStop = onStop;
     }
 
     public void setOnReset(Runnable onReset) {

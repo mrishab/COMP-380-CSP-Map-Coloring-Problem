@@ -94,8 +94,4 @@ public class ColorSelectionView extends VBox {
         }
         return selected;
     }
-
-    public Map<ColorOption, CheckBox> getColorCheckBoxes() {
-        return colorCheckBoxes;
-    }
 }

@@ -141,7 +141,7 @@ public class CspMapColoringAlgorithm implements CspAlgorithm {
             return false;
         }
         Province currentProvince = this.provinceStack.peek();
-        this.controller.updateColorState(currentProvince, (ColorOption) null);
+        this.controller.updateColorState(currentProvince, null);
 
         List<ColorOption> pickableColors = getPickableColors(currentProvince);
         int nextColorChoice = this.provinceColorAttempt.getOrDefault(currentProvince, 0) + 1;

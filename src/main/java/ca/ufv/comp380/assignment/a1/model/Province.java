@@ -465,13 +465,6 @@ public enum Province {
     }
 
     /**
-     * Alias for fromSvgMapId().
-     */
-    public static Province fromId(String id) {
-        return fromSvgMapId(id);
-    }
-
-    /**
      * Looks up a Province by its canonical name.
      */
     public static Province fromName(String name) {

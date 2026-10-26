@@ -73,8 +73,4 @@ public class MainView extends VBox {
     public ExecutionControlsView getExecutionControlsView() {
         return executionControlsView;
     }
-
-    public AppController getController() {
-        return controller;
-    }
 }

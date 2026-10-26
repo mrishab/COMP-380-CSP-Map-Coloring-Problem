@@ -6,14 +6,11 @@ import ca.ufv.comp380.assignment.a1.model.AppState;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import ca.ufv.comp380.assignment.a1.model.Province;
-import ca.ufv.comp380.assignment.a1.view.BottomControlsView;
 import ca.ufv.comp380.assignment.a1.view.ColorSelectionView;
 import ca.ufv.comp380.assignment.a1.view.ExecutionControlsView;
 import ca.ufv.comp380.assignment.a1.view.MainView;
 import ca.ufv.comp380.assignment.a1.view.MapImageView;
 import ca.ufv.comp380.assignment.a1.view.MapSettingsView;
-import javafx.beans.property.ObjectProperty;
-import javafx.scene.paint.Color;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -29,22 +26,18 @@ import java.util.Map;
  * update province colors on the map in real time.
  */
 public class AppController {
-    private final MainView mainView;
     private final MapImageView mapImageView;
-    private final BottomControlsView bottomControlsView;
     private final MapSettingsView mapSettingsView;
     private final ColorSelectionView colorSelectionView;
     private final ExecutionControlsView executionControlsView;
 
     private final AppRunner runner;
-    private CspAlgorithm algorithm;
+    private final CspAlgorithm algorithm;
     private CountryConfig currentCountry;
     private final Map<Province, ColorOption> colorState = new LinkedHashMap<>();
 
     public AppController() {
-        this.mainView = null;
         this.mapImageView = null;
-        this.bottomControlsView = null;
         this.mapSettingsView = null;
         this.colorSelectionView = null;
         this.executionControlsView = null;
@@ -54,11 +47,9 @@ public class AppController {
     }
 
     public AppController(MainView mainView) {
-        this.mainView = mainView;
         this.mapImageView = mainView.getMapImageView();
-        this.bottomControlsView = mainView.getBottomControlsView();
-        this.mapSettingsView = bottomControlsView.getMapSettingsView();
-        this.colorSelectionView = bottomControlsView.getColorSelectionView();
+        this.mapSettingsView = mainView.getBottomControlsView().getMapSettingsView();
+        this.colorSelectionView = mainView.getBottomControlsView().getColorSelectionView();
         this.executionControlsView = mainView.getExecutionControlsView();
 
         this.currentCountry = mapSettingsView.getMapComboBox().getValue();
@@ -77,7 +68,6 @@ public class AppController {
         // Wire execution controls to the runner
         executionControlsView.setOnStart(() -> runner.start());
         executionControlsView.setOnPause(() -> runner.pause());
-        executionControlsView.setOnStop(() -> runner.stop());
         executionControlsView.setOnReset(() -> runner.reset());
 
         // Wire country selection changes
@@ -148,62 +138,6 @@ public class AppController {
     }
 
     /**
-     * Updates the color state of a given province using its Province enum and a hex color code.
-     * Extracts the SVG map ID to update the visual map.
-     *
-     * @param province the Province enum
-     * @param hexColor the hex color string (or null/empty to uncolor)
-     */
-    public void updateColorState(Province province, String hexColor) {
-        if (province == null) {
-            return;
-        }
-        if (hexColor != null && !hexColor.isBlank()) {
-            ColorOption opt = findColorOptionByHex(hexColor);
-            colorState.put(province, opt);
-            String svgMapId = province.getProvinceSvgMapId();
-            if (svgMapId != null && mapImageView != null) {
-                mapImageView.setProvinceColorById(svgMapId, hexColor);
-            }
-        } else {
-            colorState.remove(province);
-            String svgMapId = province.getProvinceSvgMapId();
-            if (svgMapId != null && mapImageView != null) {
-                mapImageView.setProvinceColorById(svgMapId, null);
-            }
-        }
-    }
-
-    /**
-     * Updates the color state of a given province using its Province enum and a JavaFX Color object.
-     *
-     * @param province the Province enum
-     * @param color    the JavaFX color (or null to uncolor)
-     */
-    public void updateColorState(Province province, Color color) {
-        if (color != null) {
-            String hex = toHexString(color);
-            updateColorState(province, hex);
-        } else {
-            updateColorState(province, (String) null);
-        }
-    }
-
-    /**
-     * Updates the color state of multiple provinces in a single batch.
-     *
-     * @param newColorState map of Province -> ColorOption
-     */
-    public void updateColorState(Map<Province, ColorOption> newColorState) {
-        if (newColorState == null) {
-            return;
-        }
-        for (Map.Entry<Province, ColorOption> entry : newColorState.entrySet()) {
-            updateColorState(entry.getKey(), entry.getValue());
-        }
-    }
-
-    /**
      * Clears all applied colors from the map and resets the color state.
      */
     public void resetColorState() {
@@ -227,64 +161,9 @@ public class AppController {
         return colorState.get(province);
     }
 
-    private ColorOption findColorOptionByHex(String hexColor) {
-        for (ColorOption opt : ColorOption.getCanonicalColors()) {
-            if (opt.getHexCode().equalsIgnoreCase(hexColor)) {
-                return opt;
-            }
-        }
-        return new ColorOption("Custom", hexColor);
-    }
-
-    private String toHexString(Color color) {
-        return String.format("#%02X%02X%02X",
-                (int) Math.round(color.getRed() * 255),
-                (int) Math.round(color.getGreen() * 255),
-                (int) Math.round(color.getBlue() * 255));
-    }
-
     // ----------------------------------------------------
-    // Execution and Algorithm Controls
+    // Status Notifications (called by AppRunner)
     // ----------------------------------------------------
-
-    public void start() {
-        if (runner != null) {
-            runner.start();
-        }
-    }
-
-    public void run() {
-        start();
-    }
-
-    public void pause() {
-        if (runner != null) {
-            runner.pause();
-        }
-    }
-
-    public void stop() {
-        if (runner != null) {
-            runner.stop();
-        }
-    }
-
-    public void reset() {
-        if (runner != null) {
-            runner.reset();
-        }
-    }
-
-    public boolean step() {
-        if (runner == null) {
-            return false;
-        }
-        boolean hasMore = runner.stepOnce();
-        if (!hasMore) {
-            runner.onExecutionFinished();
-        }
-        return hasMore;
-    }
 
     public void notifyReady() {
         if (executionControlsView != null) {
@@ -324,48 +203,12 @@ public class AppController {
     // Getters & Setters
     // ----------------------------------------------------
 
-    public MainView getMainView() {
-        return mainView;
-    }
-
-    public MapImageView getMapImageView() {
-        return mapImageView;
-    }
-
-    public BottomControlsView getBottomControlsView() {
-        return bottomControlsView;
-    }
-
-    public MapSettingsView getMapSettingsView() {
-        return mapSettingsView;
-    }
-
-    public ColorSelectionView getColorSelectionView() {
-        return colorSelectionView;
-    }
-
-    public ExecutionControlsView getExecutionControlsView() {
-        return executionControlsView;
-    }
-
-    public AppRunner getRunner() {
-        return runner;
-    }
-
     public CspAlgorithm getAlgorithm() {
         return algorithm;
     }
 
-    public void setAlgorithm(CspAlgorithm algorithm) {
-        this.algorithm = algorithm;
-    }
-
     public CountryConfig getCurrentCountry() {
         return currentCountry;
-    }
-
-    public void setCurrentCountry(CountryConfig country) {
-        onCountryChanged(country);
     }
 
     public List<ColorOption> getAvailableColors() {
@@ -373,10 +216,6 @@ public class AppController {
             return colorSelectionView.getSelectedColors();
         }
         return ColorOption.getCanonicalColors();
-    }
-
-    public double getStepDelay() {
-        return mapSettingsView.getStepDelay();
     }
 
     public AppState getAppState() {
@@ -387,9 +226,5 @@ public class AppController {
         if (executionControlsView != null) {
             executionControlsView.setState(state);
         }
-    }
-
-    public ObjectProperty<AppState> appStateProperty() {
-        return executionControlsView != null ? executionControlsView.stateProperty() : null;
     }
 }

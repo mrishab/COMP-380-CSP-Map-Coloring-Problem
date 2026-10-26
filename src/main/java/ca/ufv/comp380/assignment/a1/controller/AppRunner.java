@@ -110,16 +110,6 @@ public class AppRunner {
     }
 
     /**
-     * Stops execution of the algorithm.
-     */
-    public void stop() {
-        timeline.stop();
-        if (controller.getAppState() == AppState.RUNNING || controller.getAppState() == AppState.PAUSED) {
-            controller.setAppState(AppState.STOPPED);
-        }
-    }
-
-    /**
      * Handles completion of algorithm execution (solution found or failed).
      */
     public void onExecutionFinished() {
@@ -155,24 +145,8 @@ public class AppRunner {
         return timeline.getStatus() == Timeline.Status.RUNNING;
     }
 
-    public boolean isPaused() {
-        return controller.getAppState() == AppState.PAUSED;
-    }
-
-    public double getStepDelaySeconds() {
-        return stepDelaySeconds;
-    }
-
     public void setStepDelaySeconds(double seconds) {
         this.stepDelaySeconds = seconds;
         rebuildTimeline();
-    }
-
-    public int getStepCount() {
-        return stepCount;
-    }
-
-    public Timeline getTimeline() {
-        return timeline;
     }
 }

@@ -9,28 +9,24 @@ public class ExecutionControlsTest {
 
     @Test
     public void testAppStateRules() {
-        // UNSTARTED state: Run can put into running state; pause/stop/reset disabled
-        assertTrue(AppState.UNSTARTED.isRunEnabled());
+        // UNSTARTED state: Start can put into running state; pause/reset disabled
+        assertTrue(AppState.UNSTARTED.isStartEnabled());
         assertFalse(AppState.UNSTARTED.isPauseEnabled());
-        assertFalse(AppState.UNSTARTED.isStopEnabled());
         assertFalse(AppState.UNSTARTED.isResetEnabled());
 
-        // RUNNING state: Run disabled until pause is pressed; pause & stop enabled; reset enabled
-        assertFalse(AppState.RUNNING.isRunEnabled());
+        // RUNNING state: Start disabled; pause & reset enabled
+        assertFalse(AppState.RUNNING.isStartEnabled());
         assertTrue(AppState.RUNNING.isPauseEnabled());
-        assertTrue(AppState.RUNNING.isStopEnabled());
         assertTrue(AppState.RUNNING.isResetEnabled());
 
-        // PAUSED state: Run re-enabled; pause & stop disabled; reset enabled
-        assertTrue(AppState.PAUSED.isRunEnabled());
+        // PAUSED state: Start re-enabled; pause disabled; reset enabled
+        assertTrue(AppState.PAUSED.isStartEnabled());
         assertFalse(AppState.PAUSED.isPauseEnabled());
-        assertFalse(AppState.PAUSED.isStopEnabled());
         assertTrue(AppState.PAUSED.isResetEnabled());
 
-        // STOPPED state: Run disabled; pause & stop disabled; reset enabled
-        assertFalse(AppState.STOPPED.isRunEnabled());
+        // STOPPED state: Start disabled; pause disabled; reset enabled
+        assertFalse(AppState.STOPPED.isStartEnabled());
         assertFalse(AppState.STOPPED.isPauseEnabled());
-        assertFalse(AppState.STOPPED.isStopEnabled());
         assertTrue(AppState.STOPPED.isResetEnabled());
 
         // Verify isStartEnabled alias matches isRunEnabled
@@ -48,14 +44,12 @@ public class ExecutionControlsTest {
         state = AppState.RUNNING;
         assertFalse(state.isStartEnabled());
         assertTrue(state.isPauseEnabled());
-        assertTrue(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
         // Pressing Pause -> moves to PAUSED
         state = AppState.PAUSED;
         assertTrue(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
-        assertFalse(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
         // Pressing Start again -> moves to RUNNING
@@ -67,14 +61,12 @@ public class ExecutionControlsTest {
         state = AppState.STOPPED;
         assertFalse(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
-        assertFalse(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
         // Pressing Reset -> moves back to UNSTARTED
         state = AppState.UNSTARTED;
         assertTrue(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
-        assertFalse(state.isStopEnabled());
         assertFalse(state.isResetEnabled());
     }
 }

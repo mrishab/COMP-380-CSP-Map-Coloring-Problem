@@ -48,13 +48,6 @@ public enum AppState {
     }
 
     /**
-     * Stop is disabled unless the application is actively running.
-     */
-    public boolean isStopEnabled() {
-        return this == RUNNING;
-    }
-
-    /**
      * Reset is disabled until the application is not in the unstarted state.
      */
     public boolean isResetEnabled() {
