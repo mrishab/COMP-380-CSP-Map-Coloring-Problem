@@ -1,6 +1,6 @@
 package ca.ufv.comp380.assignment.a1;
 
-import ca.ufv.comp380.assignment.a1.algorithm.CspMapColoringAlgorithm;
+import ca.ufv.comp380.assignment.a1.algorithm.DfsBacktrackingAlgorithm;
 import ca.ufv.comp380.assignment.a1.controller.AppController;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
@@ -17,7 +17,7 @@ public class CspMapColoringAlgorithmTest {
 
     private void runAndVerifyCspForCountry(CountryConfig country) {
         AppController controller = new AppController();
-        CspMapColoringAlgorithm algorithm = new CspMapColoringAlgorithm();
+        DfsBacktrackingAlgorithm algorithm = new DfsBacktrackingAlgorithm();
         List<ColorOption> colors = ColorOption.getCanonicalColors();
 
         algorithm.initialize(controller, country, colors);
@@ -34,20 +34,24 @@ public class CspMapColoringAlgorithmTest {
             }
         }
 
-        assertTrue(algorithm.isFinished(), "Algorithm should finish execution within " + maxSteps + " steps for " + country);
+        assertTrue(algorithm.isFinished(),
+                "Algorithm should finish execution within " + maxSteps + " steps for " + country);
         assertTrue(algorithm.isSolved(), "Algorithm should successfully solve CSP for " + country);
 
         Map<Province, ColorOption> colorState = controller.getColorState();
         List<Province> provinces = country.getProvinces();
 
-        // 1. Verify every province in the country has been assigned a color (no uncolored provinces)
+        // 1. Verify every province in the country has been assigned a color (no
+        // uncolored provinces)
         assertEquals(provinces.size(), colorState.size(),
-                "All " + provinces.size() + " provinces in " + country + " must be colored. Actually colored: " + colorState.size());
+                "All " + provinces.size() + " provinces in " + country + " must be colored. Actually colored: "
+                        + colorState.size());
 
         for (Province p : provinces) {
             ColorOption assigned = colorState.get(p);
             assertNotNull(assigned,
-                    "Province " + p.getProvinceName() + " (" + p.getProvinceSvgMapId() + ") was left uncolored in " + country);
+                    "Province " + p.getProvinceName() + " (" + p.getProvinceSvgMapId() + ") was left uncolored in "
+                            + country);
         }
 
         // 2. Verify CSP Constraint: No two adjacent provinces share the same color

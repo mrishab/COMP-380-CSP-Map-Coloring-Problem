@@ -6,5 +6,8 @@ docker-clean-install:
 docker-test:
 	$(MVN) test
 
+mvn-clean-install:
+	mvn clean install
+
 run:
 	java -jar target/Assignment-01-1.0.0.jar

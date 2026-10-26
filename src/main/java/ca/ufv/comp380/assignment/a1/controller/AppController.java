@@ -1,7 +1,7 @@
 package ca.ufv.comp380.assignment.a1.controller;
 
 import ca.ufv.comp380.assignment.a1.algorithm.CspAlgorithm;
-import ca.ufv.comp380.assignment.a1.algorithm.CspMapColoringAlgorithm;
+import ca.ufv.comp380.assignment.a1.algorithm.DfsBacktrackingAlgorithm;
 import ca.ufv.comp380.assignment.a1.model.AppState;
 import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
@@ -43,7 +43,7 @@ public class AppController {
         this.executionControlsView = null;
         this.currentCountry = CountryConfig.CANADA;
         this.runner = null;
-        this.algorithm = new CspMapColoringAlgorithm();
+        this.algorithm = new DfsBacktrackingAlgorithm();
     }
 
     public AppController(MainView mainView) {
@@ -61,7 +61,7 @@ public class AppController {
         this.runner.setStepDelaySeconds(mapSettingsView.getStepDelay());
 
         initListeners();
-        this.algorithm = new CspMapColoringAlgorithm();
+        this.algorithm = new DfsBacktrackingAlgorithm();
     }
 
     private void initListeners() {

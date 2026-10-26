@@ -2,8 +2,11 @@ services:
   mvn:
     image: maven:3.10-eclipse-temurin-21-alpine
     volumes:
-      - ${PWD}:${PWD}
-      - ${HOME}/.m2:/root/.m2
-    working_dir: ${PWD}
+      - ./:/app
+      - m2-data:/root/.m2
+    working_dir: /app
     user: root
     entrypoint: ["mvn"]
+
+volumes:
+  m2-data:

@@ -13,7 +13,7 @@ import ca.ufv.comp380.assignment.a1.model.ColorOption;
 import ca.ufv.comp380.assignment.a1.model.CountryConfig;
 import ca.ufv.comp380.assignment.a1.model.Province;
 
-public class CspMapColoringAlgorithm implements CspAlgorithm {
+public class DfsBacktrackingAlgorithm implements CspAlgorithm {
 
     private AppController controller;
     private CountryConfig country;
@@ -56,7 +56,8 @@ public class CspMapColoringAlgorithm implements CspAlgorithm {
 
     @Override
     public boolean isFinished() {
-        return this.country == null || (this.controller != null && this.controller.getColorState().size() >= this.country.getProvinces().size());
+        return this.country == null || (this.controller != null
+                && this.controller.getColorState().size() >= this.country.getProvinces().size());
     }
 
     @Override
