@@ -43,8 +43,9 @@ public class CspAlgorithmAndControllerTest {
 
             // Assign color cyclically and update controller
             ColorOption chosenColor = colors.get(currentProvince % colors.size());
-            if (controller != null) {
-                controller.updateColorState(currentProvince, chosenColor);
+            if (controller != null && country != null) {
+                ca.ufv.comp380.assignment.a1.model.Province p = country.getProvinces().get(currentProvince);
+                controller.updateColorState(p, chosenColor);
             }
 
             currentProvince++;
@@ -102,15 +103,15 @@ public class CspAlgorithmAndControllerTest {
     @Test
     public void testControllerColorStateTracking() {
         // Test controller updateColorState logic
-        Map<Integer, ColorOption> colorMap = new HashMap<>();
+        Map<ca.ufv.comp380.assignment.a1.model.Province, ColorOption> colorMap = new HashMap<>();
         ColorOption red = new ColorOption("Red", "#E53935");
         ColorOption blue = new ColorOption("Blue", "#1E88E5");
 
-        colorMap.put(0, red);
-        colorMap.put(1, blue);
+        colorMap.put(ca.ufv.comp380.assignment.a1.model.Province.CA_AB, red);
+        colorMap.put(ca.ufv.comp380.assignment.a1.model.Province.CA_BC, blue);
 
         assertEquals(2, colorMap.size());
-        assertEquals(red, colorMap.get(0));
-        assertEquals(blue, colorMap.get(1));
+        assertEquals(red, colorMap.get(ca.ufv.comp380.assignment.a1.model.Province.CA_AB));
+        assertEquals(blue, colorMap.get(ca.ufv.comp380.assignment.a1.model.Province.CA_BC));
     }
 }
