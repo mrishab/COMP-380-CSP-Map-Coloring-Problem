@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
  * 2. Bottom container (BottomControlsView): Divided into two columns occupying the
  *    remaining 40% of the remaining height (MapSettingsView + ColorSelectionView).
  * 3. Third container (ExecutionControlsView): Below the bottom container, occupying
- *    the full application width and divided into 4 columns (Run, Pause, Stop, Reset).
+ *    the full application width and divided into 2 columns (left: Start, Pause, Reset; right: Status Bar).
  */
 public class MainView extends VBox {
     private final MapImageView mapImageView;
@@ -24,7 +24,7 @@ public class MainView extends VBox {
         setFillWidth(true);
         setStyle("-fx-background-color: #f4f5f7;");
 
-        // Third container (action controls toolbar: Run, Pause, Stop, Reset)
+        // Third container (action controls toolbar: left: Start, Pause, Reset; right: Status Bar)
         executionControlsView = new ExecutionControlsView();
         executionControlsView.prefWidthProperty().bind(widthProperty());
         executionControlsView.setMinHeight(68);

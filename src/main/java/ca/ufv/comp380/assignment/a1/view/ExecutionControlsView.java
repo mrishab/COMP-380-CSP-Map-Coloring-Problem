@@ -6,69 +6,91 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 
 /**
- * Third container below the bottom container.
- * Full width, divided into 4 columns containing:
- * 1. Run button with play symbol (▶)
- * 2. Pause button with pause symbol (⏸)
- * 3. Stop button with stop sign symbol (🛑)
- * 4. Reset button with circular arrow symbol (↺)
+ * Bottom action controls toolbar.
+ * Full width, divided into 2 columns:
+ * 1. Left column: Start (▶), Pause (⏸), and Reset (↺) action buttons.
+ * 2. Right column: Status bar indicating execution state, including when a solution
+ *    has been found or when the algorithm has failed.
  *
  * Each button is enabled/disabled according to the application execution state:
- * - Run puts app into running state; disabled while running until pause is pressed.
+ * - Start puts app into running state; disabled while running until pause is pressed.
  * - Pause is disabled unless app is running.
- * - Stop is disabled unless app is running.
  * - Reset is disabled until app is not in unstarted state.
  */
 public class ExecutionControlsView extends HBox {
-    private final Button runButton;
-    private final Button pauseButton;
-    private final Button stopButton;
-    private final Button resetButton;
 
+    /**
+     * Visual status states for the execution status bar.
+     */
+    public enum StatusType {
+        READY,
+        RUNNING,
+        PAUSED,
+        SOLUTION_FOUND,
+        FAILED
+    }
+
+    private final Button startButton;
+    private final Button pauseButton;
+    private final Button resetButton;
+    private final Button stopButton; // Kept for backward compatibility
+
+    private final HBox statusBar;
+    private final Label statusIconLabel;
+    private final Label statusTextLabel;
+
+    private StatusType currentStatusType = StatusType.READY;
     private final ObjectProperty<AppState> stateProperty = new SimpleObjectProperty<>(AppState.UNSTARTED);
 
-    private Runnable onRun;
+    private Runnable onStart;
     private Runnable onPause;
-    private Runnable onStop;
     private Runnable onReset;
+    private Runnable onStop;
 
     public ExecutionControlsView() {
         setSpacing(16);
-        setPadding(new Insets(12, 16, 16, 16));
+        setPadding(new Insets(12, 16, 12, 16));
         setAlignment(Pos.CENTER);
         setFillHeight(true);
         setStyle("-fx-background-color: #fafbfc; -fx-border-color: #e1e4e8; -fx-border-width: 1 0 0 0;");
 
         // ----------------------------------------------------
-        // Button 1: Run (play symbol ▶)
+        // Column 1 (Left): Buttons Start, Pause, Reset
         // ----------------------------------------------------
-        runButton = createStyledButton("▶  Run", "#2ea44f", "#2c974b");
-        runButton.setOnAction(e -> {
-            if (getState().isRunEnabled()) {
+        startButton = createStyledButton("▶  Start", "#2ea44f", "#2c974b");
+        startButton.setOnAction(e -> {
+            if (getState().isStartEnabled()) {
                 setState(AppState.RUNNING);
-                if (onRun != null) onRun.run();
+                showRunning();
+                if (onStart != null) onStart.run();
             }
         });
 
-        // ----------------------------------------------------
-        // Button 2: Pause (pause symbol ⏸)
-        // ----------------------------------------------------
         pauseButton = createStyledButton("⏸  Pause", "#d97706", "#b45309");
         pauseButton.setOnAction(e -> {
             if (getState().isPauseEnabled()) {
                 setState(AppState.PAUSED);
+                showPaused();
                 if (onPause != null) onPause.run();
             }
         });
 
-        // ----------------------------------------------------
-        // Button 3: Stop (stop sign symbol 🛑)
-        // ----------------------------------------------------
+        resetButton = createStyledButton("↺  Reset", "#0969da", "#0550ae");
+        resetButton.setOnAction(e -> {
+            if (getState().isResetEnabled()) {
+                setState(AppState.UNSTARTED);
+                showReady();
+                if (onReset != null) onReset.run();
+            }
+        });
+
+        // Dummy stop button retained for backwards compatibility
         stopButton = createStyledButton("🛑  Stop", "#cf222e", "#a40e26");
         stopButton.setOnAction(e -> {
             if (getState().isStopEnabled()) {
@@ -77,42 +99,44 @@ public class ExecutionControlsView extends HBox {
             }
         });
 
-        // ----------------------------------------------------
-        // Button 4: Reset (circular arrow symbol ↺)
-        // ----------------------------------------------------
-        resetButton = createStyledButton("↺  Reset", "#0969da", "#0550ae");
-        resetButton.setOnAction(e -> {
-            if (getState().isResetEnabled()) {
-                setState(AppState.UNSTARTED);
-                if (onReset != null) onReset.run();
-            }
-        });
+        HBox leftButtonsBox = new HBox(10, startButton, pauseButton, resetButton);
+        leftButtonsBox.setAlignment(Pos.CENTER);
+        HBox.setHgrow(startButton, Priority.ALWAYS);
+        HBox.setHgrow(pauseButton, Priority.ALWAYS);
+        HBox.setHgrow(resetButton, Priority.ALWAYS);
 
-        // ----------------------------------------------------
-        // 4 Columns: each column takes 25% width
-        // ----------------------------------------------------
-        StackPane col1 = new StackPane(runButton);
-        StackPane col2 = new StackPane(pauseButton);
-        StackPane col3 = new StackPane(stopButton);
-        StackPane col4 = new StackPane(resetButton);
-
+        StackPane col1 = new StackPane(leftButtonsBox);
         col1.setAlignment(Pos.CENTER);
-        col2.setAlignment(Pos.CENTER);
-        col3.setAlignment(Pos.CENTER);
-        col4.setAlignment(Pos.CENTER);
-
         HBox.setHgrow(col1, Priority.ALWAYS);
+
+        // ----------------------------------------------------
+        // Column 2 (Right): Status Bar
+        // ----------------------------------------------------
+        statusIconLabel = new Label("●");
+        statusIconLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        statusTextLabel = new Label("Ready to start");
+        statusTextLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+
+        statusBar = new HBox(10, statusIconLabel, statusTextLabel);
+        statusBar.setAlignment(Pos.CENTER);
+        statusBar.setPadding(new Insets(8, 16, 8, 16));
+        statusBar.setPrefHeight(42);
+        statusBar.setMaxHeight(42);
+        statusBar.setMaxWidth(Double.MAX_VALUE);
+
+        StackPane col2 = new StackPane(statusBar);
+        col2.setAlignment(Pos.CENTER);
         HBox.setHgrow(col2, Priority.ALWAYS);
-        HBox.setHgrow(col3, Priority.ALWAYS);
-        HBox.setHgrow(col4, Priority.ALWAYS);
 
-        // Bind each column to 25% of available width after margins and padding
-        col1.prefWidthProperty().bind(widthProperty().subtract(80).multiply(0.25));
-        col2.prefWidthProperty().bind(widthProperty().subtract(80).multiply(0.25));
-        col3.prefWidthProperty().bind(widthProperty().subtract(80).multiply(0.25));
-        col4.prefWidthProperty().bind(widthProperty().subtract(80).multiply(0.25));
+        // 2 Columns: each column takes 50% width
+        col1.prefWidthProperty().bind(widthProperty().subtract(48).multiply(0.50));
+        col2.prefWidthProperty().bind(widthProperty().subtract(48).multiply(0.50));
 
-        getChildren().addAll(col1, col2, col3, col4);
+        getChildren().addAll(col1, col2);
+
+        // Set initial status to READY
+        showReady();
 
         // React to state changes and update button enabled/disabled states
         stateProperty.addListener((obs, oldState, newState) -> updateButtonStates(newState));
@@ -128,7 +152,7 @@ public class ExecutionControlsView extends HBox {
         String baseStyle = "-fx-background-color: " + bgColor + "; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-font-size: 14px; " +
+            "-fx-font-size: 13px; " +
             "-fx-background-radius: 8; " +
             "-fx-border-radius: 8; " +
             "-fx-cursor: hand; " +
@@ -138,7 +162,7 @@ public class ExecutionControlsView extends HBox {
         String hoverStyle = "-fx-background-color: " + hoverColor + "; " +
             "-fx-text-fill: white; " +
             "-fx-font-weight: bold; " +
-            "-fx-font-size: 14px; " +
+            "-fx-font-size: 13px; " +
             "-fx-background-radius: 8; " +
             "-fx-border-radius: 8; " +
             "-fx-cursor: hand; " +
@@ -170,11 +194,123 @@ public class ExecutionControlsView extends HBox {
         if (state == null) {
             state = AppState.UNSTARTED;
         }
-        runButton.setDisable(!state.isRunEnabled());
+        startButton.setDisable(!state.isRunEnabled());
         pauseButton.setDisable(!state.isPauseEnabled());
         stopButton.setDisable(!state.isStopEnabled());
         resetButton.setDisable(!state.isResetEnabled());
     }
+
+    // ----------------------------------------------------
+    // Status Bar Controls
+    // ----------------------------------------------------
+
+    /**
+     * Updates the status bar type, icon, text message, and styling.
+     *
+     * @param type    the status type
+     * @param message the user-facing text message
+     */
+    public void setStatus(StatusType type, String message) {
+        this.currentStatusType = type;
+        statusTextLabel.setText(message);
+
+        switch (type) {
+            case READY -> {
+                statusIconLabel.setText("●");
+                statusIconLabel.setStyle("-fx-text-fill: #57606a; -fx-font-size: 14px; -fx-font-weight: bold;");
+                statusTextLabel.setStyle("-fx-text-fill: #57606a; -fx-font-size: 13px; -fx-font-weight: bold;");
+                statusBar.setStyle("-fx-background-color: #f6f8fa; -fx-border-color: #d0d7de; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+            }
+            case RUNNING -> {
+                statusIconLabel.setText("▶");
+                statusIconLabel.setStyle("-fx-text-fill: #0969da; -fx-font-size: 14px; -fx-font-weight: bold;");
+                statusTextLabel.setStyle("-fx-text-fill: #0969da; -fx-font-size: 13px; -fx-font-weight: bold;");
+                statusBar.setStyle("-fx-background-color: #ddf4ff; -fx-border-color: #54aeff; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+            }
+            case PAUSED -> {
+                statusIconLabel.setText("⏸");
+                statusIconLabel.setStyle("-fx-text-fill: #9a6700; -fx-font-size: 14px; -fx-font-weight: bold;");
+                statusTextLabel.setStyle("-fx-text-fill: #9a6700; -fx-font-size: 13px; -fx-font-weight: bold;");
+                statusBar.setStyle("-fx-background-color: #fff8c5; -fx-border-color: #d4a72c; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+            }
+            case SOLUTION_FOUND -> {
+                statusIconLabel.setText("✔");
+                statusIconLabel.setStyle("-fx-text-fill: #1a7f37; -fx-font-size: 15px; -fx-font-weight: bold;");
+                statusTextLabel.setStyle("-fx-text-fill: #1a7f37; -fx-font-size: 13px; -fx-font-weight: bold;");
+                statusBar.setStyle("-fx-background-color: #dafbe1; -fx-border-color: #4ac26b; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(46, 164, 79, 0.15), 4, 0, 0, 1);");
+            }
+            case FAILED -> {
+                statusIconLabel.setText("✖");
+                statusIconLabel.setStyle("-fx-text-fill: #cf222e; -fx-font-size: 15px; -fx-font-weight: bold;");
+                statusTextLabel.setStyle("-fx-text-fill: #cf222e; -fx-font-size: 13px; -fx-font-weight: bold;");
+                statusBar.setStyle("-fx-background-color: #ffebe9; -fx-border-color: #ff8182; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(207, 34, 46, 0.15), 4, 0, 0, 1);");
+            }
+        }
+    }
+
+    public void showReady() {
+        setStatus(StatusType.READY, "Ready to start");
+    }
+
+    public void showReady(String message) {
+        setStatus(StatusType.READY, message);
+    }
+
+    public void showRunning() {
+        setStatus(StatusType.RUNNING, "Running... searching for solution");
+    }
+
+    public void showRunning(String message) {
+        setStatus(StatusType.RUNNING, message);
+    }
+
+    public void showPaused() {
+        setStatus(StatusType.PAUSED, "Paused");
+    }
+
+    public void showPaused(String message) {
+        setStatus(StatusType.PAUSED, message);
+    }
+
+    public void showSolutionFound() {
+        setStatus(StatusType.SOLUTION_FOUND, "Solution found! All provinces colored");
+    }
+
+    public void showSolutionFound(String message) {
+        setStatus(StatusType.SOLUTION_FOUND, message);
+    }
+
+    public void showFailed() {
+        setStatus(StatusType.FAILED, "Failed: No valid solution found");
+    }
+
+    public void showFailed(String message) {
+        setStatus(StatusType.FAILED, message);
+    }
+
+    public StatusType getStatusType() {
+        return currentStatusType;
+    }
+
+    public String getStatusText() {
+        return statusTextLabel.getText();
+    }
+
+    public HBox getStatusBar() {
+        return statusBar;
+    }
+
+    public Label getStatusIconLabel() {
+        return statusIconLabel;
+    }
+
+    public Label getStatusTextLabel() {
+        return statusTextLabel;
+    }
+
+    // ----------------------------------------------------
+    // State and Button Getters & Listeners
+    // ----------------------------------------------------
 
     public AppState getState() {
         return stateProperty.get();
@@ -188,8 +324,12 @@ public class ExecutionControlsView extends HBox {
         return stateProperty;
     }
 
+    public Button getStartButton() {
+        return startButton;
+    }
+
     public Button getRunButton() {
-        return runButton;
+        return startButton;
     }
 
     public Button getPauseButton() {
@@ -204,8 +344,12 @@ public class ExecutionControlsView extends HBox {
         return resetButton;
     }
 
+    public void setOnStart(Runnable onStart) {
+        this.onStart = onStart;
+    }
+
     public void setOnRun(Runnable onRun) {
-        this.onRun = onRun;
+        this.onStart = onRun;
     }
 
     public void setOnPause(Runnable onPause) {

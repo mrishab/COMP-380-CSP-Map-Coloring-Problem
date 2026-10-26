@@ -38,7 +38,7 @@ public class AppRunner {
         KeyFrame keyFrame = new KeyFrame(duration, e -> {
             boolean hasMore = stepOnce();
             if (!hasMore) {
-                stop();
+                onExecutionFinished();
             }
         });
 
@@ -82,6 +82,7 @@ public class AppRunner {
         if (controller.getAppState() != AppState.RUNNING) {
             controller.setAppState(AppState.RUNNING);
         }
+        controller.notifyRunning();
 
         rebuildTimeline();
 
@@ -89,7 +90,7 @@ public class AppRunner {
         if (stepCount == 0) {
             boolean hasMore = stepOnce();
             if (!hasMore) {
-                stop();
+                onExecutionFinished();
                 return;
             }
         }
@@ -105,6 +106,7 @@ public class AppRunner {
         if (controller.getAppState() == AppState.RUNNING) {
             controller.setAppState(AppState.PAUSED);
         }
+        controller.notifyPaused();
     }
 
     /**
@@ -114,6 +116,23 @@ public class AppRunner {
         timeline.stop();
         if (controller.getAppState() == AppState.RUNNING || controller.getAppState() == AppState.PAUSED) {
             controller.setAppState(AppState.STOPPED);
+        }
+    }
+
+    /**
+     * Handles completion of algorithm execution (solution found or failed).
+     */
+    public void onExecutionFinished() {
+        timeline.stop();
+        if (controller.getAppState() == AppState.RUNNING || controller.getAppState() == AppState.PAUSED) {
+            controller.setAppState(AppState.STOPPED);
+        }
+
+        CspAlgorithm algorithm = controller.getAlgorithm();
+        if (algorithm != null && algorithm.isSolved()) {
+            controller.notifySolutionFound();
+        } else {
+            controller.notifyFailed();
         }
     }
 
@@ -129,6 +148,7 @@ public class AppRunner {
         }
         controller.resetColorState();
         controller.setAppState(AppState.UNSTARTED);
+        controller.notifyReady();
     }
 
     public boolean isRunning() {

@@ -26,11 +26,18 @@ public enum AppState {
     STOPPED;
 
     /**
-     * Run is enabled in UNSTARTED and PAUSED states.
-     * When RUNNING or STOPPED, Run is disabled.
+     * Start / Run is enabled in UNSTARTED and PAUSED states.
+     * When RUNNING or STOPPED, Start / Run is disabled.
      */
     public boolean isRunEnabled() {
         return this == UNSTARTED || this == PAUSED;
+    }
+
+    /**
+     * Alias for isRunEnabled().
+     */
+    public boolean isStartEnabled() {
+        return isRunEnabled();
     }
 
     /**

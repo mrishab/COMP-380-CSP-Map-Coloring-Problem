@@ -32,42 +32,47 @@ public class ExecutionControlsTest {
         assertFalse(AppState.STOPPED.isPauseEnabled());
         assertFalse(AppState.STOPPED.isStopEnabled());
         assertTrue(AppState.STOPPED.isResetEnabled());
+
+        // Verify isStartEnabled alias matches isRunEnabled
+        for (AppState s : AppState.values()) {
+            assertEquals(s.isRunEnabled(), s.isStartEnabled(), "isStartEnabled must match isRunEnabled for " + s);
+        }
     }
 
     @Test
     public void testStateTransitions() {
         AppState state = AppState.UNSTARTED;
 
-        // Pressing Run -> moves to RUNNING
-        assertTrue(state.isRunEnabled());
+        // Pressing Start -> moves to RUNNING
+        assertTrue(state.isStartEnabled());
         state = AppState.RUNNING;
-        assertFalse(state.isRunEnabled());
+        assertFalse(state.isStartEnabled());
         assertTrue(state.isPauseEnabled());
         assertTrue(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
         // Pressing Pause -> moves to PAUSED
         state = AppState.PAUSED;
-        assertTrue(state.isRunEnabled());
+        assertTrue(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
         assertFalse(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
-        // Pressing Run again -> moves to RUNNING
+        // Pressing Start again -> moves to RUNNING
         state = AppState.RUNNING;
-        assertFalse(state.isRunEnabled());
+        assertFalse(state.isStartEnabled());
         assertTrue(state.isPauseEnabled());
 
-        // Pressing Stop -> moves to STOPPED
+        // When algorithm finishes (solution found or failed) -> moves to STOPPED
         state = AppState.STOPPED;
-        assertFalse(state.isRunEnabled());
+        assertFalse(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
         assertFalse(state.isStopEnabled());
         assertTrue(state.isResetEnabled());
 
-        // Pressing Reset -> moves to UNSTARTED
+        // Pressing Reset -> moves back to UNSTARTED
         state = AppState.UNSTARTED;
-        assertTrue(state.isRunEnabled());
+        assertTrue(state.isStartEnabled());
         assertFalse(state.isPauseEnabled());
         assertFalse(state.isStopEnabled());
         assertFalse(state.isResetEnabled());

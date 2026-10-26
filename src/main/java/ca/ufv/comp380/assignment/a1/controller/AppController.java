@@ -75,7 +75,7 @@ public class AppController {
 
     private void initListeners() {
         // Wire execution controls to the runner
-        executionControlsView.setOnRun(() -> runner.start());
+        executionControlsView.setOnStart(() -> runner.start());
         executionControlsView.setOnPause(() -> runner.pause());
         executionControlsView.setOnStop(() -> runner.stop());
         executionControlsView.setOnReset(() -> runner.reset());
@@ -105,6 +105,7 @@ public class AppController {
         if (mapImageView != null) {
             mapImageView.loadMap(newCountry.getMapSvg());
         }
+        notifyReady();
     }
 
     /**
@@ -246,24 +247,77 @@ public class AppController {
     // Execution and Algorithm Controls
     // ----------------------------------------------------
 
+    public void start() {
+        if (runner != null) {
+            runner.start();
+        }
+    }
+
     public void run() {
-        runner.start();
+        start();
     }
 
     public void pause() {
-        runner.pause();
+        if (runner != null) {
+            runner.pause();
+        }
     }
 
     public void stop() {
-        runner.stop();
+        if (runner != null) {
+            runner.stop();
+        }
     }
 
     public void reset() {
-        runner.reset();
+        if (runner != null) {
+            runner.reset();
+        }
     }
 
     public boolean step() {
-        return runner.stepOnce();
+        if (runner == null) {
+            return false;
+        }
+        boolean hasMore = runner.stepOnce();
+        if (!hasMore) {
+            runner.onExecutionFinished();
+        }
+        return hasMore;
+    }
+
+    public void notifyReady() {
+        if (executionControlsView != null) {
+            executionControlsView.showReady();
+        }
+    }
+
+    public void notifyRunning() {
+        if (executionControlsView != null) {
+            executionControlsView.showRunning();
+        }
+    }
+
+    public void notifyPaused() {
+        if (executionControlsView != null) {
+            executionControlsView.showPaused();
+        }
+    }
+
+    public void notifySolutionFound() {
+        if (executionControlsView != null) {
+            int count = colorState.size();
+            int total = currentCountry != null ? currentCountry.getProvinces().size() : count;
+            executionControlsView.showSolutionFound("Solution found! (" + count + "/" + total + " provinces colored)");
+        }
+    }
+
+    public void notifyFailed() {
+        if (executionControlsView != null) {
+            int count = colorState.size();
+            int total = currentCountry != null ? currentCountry.getProvinces().size() : 0;
+            executionControlsView.showFailed("Failed: No valid solution found (" + count + "/" + total + " colored)");
+        }
     }
 
     // ----------------------------------------------------
@@ -326,14 +380,16 @@ public class AppController {
     }
 
     public AppState getAppState() {
-        return executionControlsView.getState();
+        return executionControlsView != null ? executionControlsView.getState() : AppState.UNSTARTED;
     }
 
     public void setAppState(AppState state) {
-        executionControlsView.setState(state);
+        if (executionControlsView != null) {
+            executionControlsView.setState(state);
+        }
     }
 
     public ObjectProperty<AppState> appStateProperty() {
-        return executionControlsView.stateProperty();
+        return executionControlsView != null ? executionControlsView.stateProperty() : null;
     }
 }
